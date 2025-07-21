@@ -12,17 +12,61 @@
 
 
 import socket
+import time
+import sys
+import threading
+
+openPorts = []
+closedPorts = []
+progress = 0  # Progress percentage
+
+# ASCII banner
+def ascii_banner():
+    animation = [
+        r"   ____             _           _           ",
+        r"  / __ \           | |         | |          ",
+        r" | |  | |_ __   ___| |__   ___ | | ___   _  ",
+        r" | |  | | '_ \ / __| '_ \ / _ \| |/ / | | | ",
+        r" | |__| | | | | (__| | | | (_) |   <| |_| | ",
+        r"  \____/|_| |_|\___|_| |_|\___/|_|\_\\__,_| ",
+        r"                                             ",
+        r"         Open Port Scanner by Vignesh        ",
+        r"---------------------------------------------"
+    ]
+    for line in animation:
+        print(line)
+        time.sleep(0.05)
+    print("\n")
+
+# Loading animation with percentage
+def loading_animation(total_ports):
+    while progress < 100:
+        sys.stdout.write(f"\rScanning ports... {progress}%")
+        sys.stdout.flush()
+        time.sleep(0.1)
+    sys.stdout.write(f"\rScanning ports... 100%\n")
+    sys.stdout.flush()
 
 # Function to scan ports in a given range on a target IP address
 def scan(ip, s, e):
-    for p in range(s, e+1):  # Loop through each port in the specified range
-        with socket.socket() as sock:  # Create a new socket for each port
-            sock.settimeout(0.5)  # Set a timeout for the connection attempt (0.2 seconds)
-            # Try to connect to the target IP and port
-            if sock.connect_ex((ip, p)) == 0:  # If connection is successful (returns 0)
-                print(f"Port {p} open")  # Print that the port is ope
+    global progress
+    total_ports = e - s + 1
+    scanned_ports = 0
+    t = threading.Thread(target=loading_animation, args=(total_ports,))
+    t.start()
+    for p in range(s, e+1):
+        with socket.socket() as sock:
+            sock.settimeout(0.5)
+            if sock.connect_ex((ip, p)) == 0:
+                openPorts.append(p)
             else:
-                print(f"Port {p} closed")
+                closedPorts.append(p)
+        scanned_ports += 1
+        progress = int((scanned_ports / total_ports) * 100)
+    t.join()
+    print(f"Open Ports: {openPorts}")
+    print(f"Closed Ports: {closedPorts}")
+
 if __name__ == "__main__":
-    # Get user input for IP address and port range, then start the scan
-    scan(input("IP: "), int(input("Start: ")), int(input("End: ")))
+    ascii_banner()
+    scan(input("IP: "), int(input("Starting Port : ")), int(input("Ending Port : ")))
