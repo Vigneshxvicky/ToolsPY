@@ -29,6 +29,13 @@ def ping_sweep(network_prefix, start, end):
 
 if __name__ == "__main__":
     # Get user input for network prefix and host range
+    # print("Your IPv4 address is:\n",os.system('ipconfig | findstr /i "IPv4"'))  # Print the output of the command to show the IPv4 address
+    # Get the IPv4 address using a system command
+    output = os.popen('ipconfig | findstr /i "IPv4"').read()
+    print("Your IPv4 address is:\n", output)
+
+    # Get user input for network prefix and host range
+    # Example: 192.168.1 for prefix, 1 for start, and
     prefix = input("Enter network prefix (e.g., 192.168.1): ")
     start = int(input("Start host number: "))
     end = int(input("End host number: "))
